@@ -8,19 +8,23 @@ class AppRepository(context: Context) {
     private var db: AppDatabase = Room.databaseBuilder(
         context,
         AppDatabase::class.java, "database-name"
-    ).allowMainThreadQueries().build();
+    ).fallbackToDestructiveMigration().build();
 
-    fun GetAll(): LiveData<List<Pohod>>
+    fun GetAll(type: Int): LiveData<List<Pohod>>
     {
-        return db.PohodDao().GetAll();
+        return db.PohodDao().GetAll(type);
     }
 
     fun Insert(pohod: Pohod)
     {
-        db.PohodDao().Insert(pohod)
+        db.queryExecutor.execute {
+            db.PohodDao().Insert(pohod)
+        }
     }
     fun Remove(pohod: Pohod)
     {
-        db.PohodDao().Remove(pohod)
+        db.queryExecutor.execute {
+            db.PohodDao().Remove(pohod)
+        }
     }
 }

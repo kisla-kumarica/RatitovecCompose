@@ -3,6 +3,7 @@ package com.example.ratitoveccompose
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -15,6 +16,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.*
@@ -31,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,8 +43,10 @@ import com.example.ratitoveccompose.data.PohodiViewModel
 import com.example.ratitoveccompose.data.PohodiViewModelFactory
 import com.example.ratitoveccompose.ui.theme.RatitovecComposeTheme
 import com.google.android.material.internal.ContextUtils
+import com.google.android.material.tabs.TabLayout
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +55,45 @@ class MainActivity : ComponentActivity() {
             RatitovecComposeTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    Base()
+                    Column {
+                        TopAppBar(
+                            title = {
+                                Text(text = stringResource(R.string.app_name))
+                            },
+                           actions = {
+                                IconButton(onClick = { }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Settings,
+                                        contentDescription = "Menu Btn"
+                                    )
+                                }
+                            },
+                            backgroundColor = MaterialTheme.colors.primary,
+                            contentColor = MaterialTheme.colors.onPrimary,
+                            elevation = 2.dp
+                        )
+                        val Tabs = listOf("Vpisani", "Nevpisani", "Vsi")
+                        var index by remember { mutableStateOf(0) }
+                        Column {
+                            TabRow(selectedTabIndex = index) {
+                                Tabs.forEachIndexed { i, el ->
+                                    Tab(
+                                        selected = i == index,
+                                        onClick = { index = i },
+                                        enabled = true,
+                                //        selectedContentColor = MaterialTheme.colors.onPrimary,
+                                //        unselectedContentColor = MaterialTheme.colors.onPrimary
+                                    )
+                                    {
+                                        Text(el, modifier = Modifier.padding(8.dp))
+                                        //tab = Tabs.values()[index]
+                                    }
+                                }
+                            }
+
+                            Base(index)
+                        }
+                    }
                 }
             }
         }
@@ -58,54 +101,41 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Base() {
+fun Base(type: Int) {
     val viewModel: PohodiViewModel = viewModel(factory = PohodiViewModelFactory(LocalContext.current))
     Column {
-        TopAppBar(
-            title = {
-                Text(text = stringResource(R.string.app_name))
-            },
-            navigationIcon = {
-                IconButton(onClick = { }) {
-                    Icon(imageVector = Icons.Filled.Menu, contentDescription = "Menu Btn")
-                }
-            },
-            backgroundColor = MaterialTheme.colors.primary,
-            contentColor = MaterialTheme.colors.onPrimary,
-            elevation = 2.dp
-        )
-        Text(text = "Hello World!", modifier = Modifier.align(Alignment.CenterHorizontally))
-        Button(onClick = { viewModel.Insert(Pohod(Date().time)) },
-                modifier = Modifier.align(Alignment.CenterHorizontally),
+        Button(onClick = { viewModel.Insert(Pohod(Date().time, if(type!=2) type else 1)) },
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(8.dp),
                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary)) {
             Text(text = "Dodaj")
         }
-        PohodiList()
+        PohodiList(type)
 
     }
 }
 
 @Composable
-fun PohodiList()
+fun PohodiList(type: Int)
 {
     val viewModel: PohodiViewModel = viewModel(factory = PohodiViewModelFactory(LocalContext.current))
+    val context = LocalContext.current;
+    viewModel.setFilter(type)
     val pohodi by viewModel.pohodi.observeAsState()
+    Text(text = pohodi?.size.toString(), textAlign = TextAlign.Center, fontSize = 40.sp, modifier = Modifier.fillMaxWidth().padding(8.dp))
     if (pohodi != null)
     {
-        val scrollState = rememberLazyListState()
-        LazyColumn(modifier = Modifier.fillMaxSize(), state = scrollState) {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(pohodi!!) {data ->
                 PohodItem(pohod = data, modifier = Modifier
                     .height(56.dp)
                     .pointerInput(Unit) {
                         detectTapGestures(onLongPress = {
                             viewModel.Remove(data)
-                            Log.d("REMOVED", "REMOVED")
+                            Toast.makeText(context, "clicked index", Toast.LENGTH_LONG).show();
                         })
                     }
                 )
-                }
-
+            }
         }
     }
 }
@@ -118,7 +148,7 @@ fun PohodItem(pohod: Pohod, modifier: Modifier)
         Divider()
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight())
         {
-            Icon(painterResource(id = R.drawable.ic_paper),
+            Icon(painterResource(id = if(pohod.Type == 0) R.drawable.ic_paper else R.drawable.ic_assignment_late),
                 contentDescription = null,
                 tint = MaterialTheme.colors.secondary,
                 modifier = Modifier.size(32.dp))
@@ -131,6 +161,6 @@ fun PohodItem(pohod: Pohod, modifier: Modifier)
 @Composable
 fun DefaultPreview() {
     RatitovecComposeTheme {
-        Base()
+        Base(0)
     }
 }
