@@ -1,11 +1,15 @@
 package com.example.ratitoveccompose
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
+import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -37,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.preference.PreferenceManager
 import com.example.ratitoveccompose.data.Pohod
 import com.example.ratitoveccompose.data.PohodDAO
 import com.example.ratitoveccompose.data.PohodiViewModel
@@ -51,8 +56,17 @@ import kotlin.collections.ArrayList
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
         setContent {
-            RatitovecComposeTheme {
+            val darkMode = remember{PreferenceManager.getDefaultSharedPreferences(this)!!.getBoolean("DarkMode", false)}
+            //TODO observe dark mode
+            if (darkMode)
+                AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_YES)
+            else
+                AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_NO)
+
+            RatitovecComposeTheme(darkTheme = darkMode) {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
                     Column {
@@ -61,7 +75,7 @@ class MainActivity : ComponentActivity() {
                                 Text(text = stringResource(R.string.app_name))
                             },
                            actions = {
-                                IconButton(onClick = { }) {
+                                IconButton(onClick = { startActivity(Intent(applicationContext,SettingsActivity::class.java))}) {
                                     Icon(
                                         imageVector = Icons.Filled.Settings,
                                         contentDescription = "Menu Btn"
