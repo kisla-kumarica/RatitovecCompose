@@ -3,7 +3,7 @@
 
         <SwitchPreferenceCompat
             app:key="DarkMode"
-            app:title="Dark mode" />
+            app:title="Dark mode"/>
 
     </PreferenceCategory>
 

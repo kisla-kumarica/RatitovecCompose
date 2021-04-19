@@ -42,10 +42,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.preference.PreferenceManager
-import com.example.ratitoveccompose.data.Pohod
-import com.example.ratitoveccompose.data.PohodDAO
-import com.example.ratitoveccompose.data.PohodiViewModel
-import com.example.ratitoveccompose.data.PohodiViewModelFactory
+import com.example.ratitoveccompose.data.*
 import com.example.ratitoveccompose.ui.theme.RatitovecComposeTheme
 import com.google.android.material.internal.ContextUtils
 import com.google.android.material.tabs.TabLayout
@@ -59,15 +56,14 @@ class MainActivity : ComponentActivity() {
 
 
         setContent {
-            val darkMode = remember{PreferenceManager.getDefaultSharedPreferences(this)!!.getBoolean("DarkMode", false)}
+            val darkMode = ThemePreferences(this).DarkTheme.collectAsState(initial = false)
             //TODO observe dark mode
-            if (darkMode)
+            if (darkMode.value)
                 AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_YES)
             else
                 AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_NO)
 
-            RatitovecComposeTheme(darkTheme = darkMode) {
-                // A surface container using the 'background' color from the theme
+            RatitovecComposeTheme(darkTheme = darkMode.value) {
                 Surface(color = MaterialTheme.colors.background) {
                     Column {
                         TopAppBar(
@@ -104,7 +100,6 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             }
-
                             Base(index)
                         }
                     }
@@ -118,8 +113,10 @@ class MainActivity : ComponentActivity() {
 fun Base(type: Int) {
     val viewModel: PohodiViewModel = viewModel(factory = PohodiViewModelFactory(LocalContext.current))
     Column {
-        Button(onClick = { viewModel.Insert(Pohod(Date().time, if(type!=2) type else 1)) },
-                modifier = Modifier.align(Alignment.CenterHorizontally).padding(8.dp),
+        Button(onClick = { viewModel.Insert(Pohod(Date().time, if(type==2) 1 else type)) },
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(8.dp),
                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary)) {
             Text(text = "Dodaj")
         }
@@ -135,7 +132,9 @@ fun PohodiList(type: Int)
     val context = LocalContext.current;
     viewModel.setFilter(type)
     val pohodi by viewModel.pohodi.observeAsState()
-    Text(text = pohodi?.size.toString(), textAlign = TextAlign.Center, fontSize = 40.sp, modifier = Modifier.fillMaxWidth().padding(8.dp))
+    Text(text = pohodi?.size.toString(), textAlign = TextAlign.Center, fontSize = 40.sp, modifier = Modifier
+        .fillMaxWidth()
+        .padding(8.dp))
     if (pohodi != null)
     {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -145,7 +144,9 @@ fun PohodiList(type: Int)
                     .pointerInput(Unit) {
                         detectTapGestures(onLongPress = {
                             viewModel.Remove(data)
-                            Toast.makeText(context, "clicked index", Toast.LENGTH_LONG).show();
+                            Toast
+                                .makeText(context, "clicked index", Toast.LENGTH_LONG)
+                                .show();
                         })
                     }
                 )
