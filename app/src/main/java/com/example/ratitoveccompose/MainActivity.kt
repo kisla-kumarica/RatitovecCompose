@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
 import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,27 +37,32 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.preference.PreferenceManager
 import com.example.ratitoveccompose.data.*
 import com.example.ratitoveccompose.ui.theme.RatitovecComposeTheme
 import com.google.android.material.internal.ContextUtils
 import com.google.android.material.tabs.TabLayout
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
+    @ExperimentalMaterialApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
         setContent {
-            val darkMode = ThemePreferences(this).DarkTheme.collectAsState(initial = false)
+            val prefs = ThemePreferences(this)
+            val darkMode = prefs.DarkTheme.collectAsState(initial = false)
             //TODO observe dark mode
             if (darkMode.value)
                 AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_YES)
@@ -90,17 +96,21 @@ class MainActivity : ComponentActivity() {
                                     Tab(
                                         selected = i == index,
                                         onClick = { index = i },
-                                        enabled = true,
-                                //        selectedContentColor = MaterialTheme.colors.onPrimary,
-                                //        unselectedContentColor = MaterialTheme.colors.onPrimary
+                                        enabled = true
                                     )
                                     {
                                         Text(el, modifier = Modifier.padding(8.dp))
-                                        //tab = Tabs.values()[index]
                                     }
                                 }
                             }
-                            Base(index)
+                            val swipeableState = rememberSwipeableState(0)
+                            if (swipeableState.currentValue == 1 || swipeableState.currentValue == -1) {
+                                if ((index < 2 && swipeableState.currentValue == 1) || (index >0 && swipeableState.currentValue == -1))
+                                    index += swipeableState.currentValue
+                                lifecycleScope.launch{
+                                swipeableState.snapTo(0)}
+                            }
+                            Base(index, Modifier.offset{ IntOffset(swipeableState.offset.value.roundToInt(), 0) }.swipeable(swipeableState, mapOf(0f to 0, -300f to 1, 300f to -1), Orientation.Horizontal))
                         }
                     }
                 }
@@ -110,9 +120,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Base(type: Int) {
+fun Base(type: Int, modifier:Modifier) {
     val viewModel: PohodiViewModel = viewModel(factory = PohodiViewModelFactory(LocalContext.current))
-    Column {
+    Column(modifier) {
         Button(onClick = { viewModel.Insert(Pohod(Date().time, if(type==2) 1 else type)) },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
@@ -129,7 +139,7 @@ fun Base(type: Int) {
 fun PohodiList(type: Int)
 {
     val viewModel: PohodiViewModel = viewModel(factory = PohodiViewModelFactory(LocalContext.current))
-    val context = LocalContext.current;
+    val context = LocalContext.current
     viewModel.setFilter(type)
     val pohodi by viewModel.pohodi.observeAsState()
     Text(text = pohodi?.size.toString(), textAlign = TextAlign.Center, fontSize = 40.sp, modifier = Modifier
@@ -146,7 +156,7 @@ fun PohodiList(type: Int)
                             viewModel.Remove(data)
                             Toast
                                 .makeText(context, "clicked index", Toast.LENGTH_LONG)
-                                .show();
+                                .show()
                         })
                     }
                 )
@@ -176,6 +186,6 @@ fun PohodItem(pohod: Pohod, modifier: Modifier)
 @Composable
 fun DefaultPreview() {
     RatitovecComposeTheme {
-        Base(0)
+   //     Base(0)
     }
 }
