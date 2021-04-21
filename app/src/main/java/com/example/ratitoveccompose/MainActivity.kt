@@ -110,7 +110,12 @@ class MainActivity : ComponentActivity() {
                                 lifecycleScope.launch{
                                 swipeableState.snapTo(0)}
                             }
-                            Base(index, Modifier.offset{ IntOffset(swipeableState.offset.value.roundToInt(), 0) }.swipeable(swipeableState, mapOf(0f to 0, -300f to 1, 300f to -1), Orientation.Horizontal))
+                            Column(Modifier.offset{ IntOffset(swipeableState.offset.value.roundToInt(), 0) }.swipeable(swipeableState, mapOf(0f to 0, -300f to 1, 300f to -1), Orientation.Horizontal))
+                            {
+                                Base(index)
+                                if (index < 2)
+                                    Base(index+1)
+                            }
                         }
                     }
                 }
@@ -120,9 +125,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Base(type: Int, modifier:Modifier) {
+fun Base(type: Int) {
     val viewModel: PohodiViewModel = viewModel(factory = PohodiViewModelFactory(LocalContext.current))
-    Column(modifier) {
+    Column {
         Button(onClick = { viewModel.Insert(Pohod(Date().time, if(type==2) 1 else type)) },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
