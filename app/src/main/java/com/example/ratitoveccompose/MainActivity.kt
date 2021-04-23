@@ -103,19 +103,22 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             }
-                            val swipeableState = rememberSwipeableState(0)
+                            Base(index)
+                            /*val swipeableState = rememberSwipeableState(0)
                             if (swipeableState.currentValue == 1 || swipeableState.currentValue == -1) {
                                 if ((index < 2 && swipeableState.currentValue == 1) || (index >0 && swipeableState.currentValue == -1))
                                     index += swipeableState.currentValue
                                 lifecycleScope.launch{
                                 swipeableState.snapTo(0)}
                             }
-                            Column(Modifier.offset{ IntOffset(swipeableState.offset.value.roundToInt(), 0) }.swipeable(swipeableState, mapOf(0f to 0, -300f to 1, 300f to -1), Orientation.Horizontal))
+                            Row(Modifier.offset{ IntOffset(swipeableState.offset.value.roundToInt(), 0) }.swipeable(swipeableState, mapOf(0f to 0, -300f to 1, 300f to -1), Orientation.Horizontal))
                             {
                                 Base(index)
                                 if (index < 2)
                                     Base(index+1)
-                            }
+                                if (index > 0)
+                                    Base(index-1)
+                            }*/
                         }
                     }
                 }
