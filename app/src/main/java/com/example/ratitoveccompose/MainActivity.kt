@@ -74,7 +74,7 @@ class MainActivity : ComponentActivity() {
                     Column {
                         TopAppBar(
                             title = {
-                                Text(text = stringResource(R.string.app_name))
+                                Text(text = stringResource(R.string.app_name), textAlign = TextAlign.Center)
                             },
                            actions = {
                                 IconButton(onClick = { startActivity(Intent(applicationContext,SettingsActivity::class.java))}) {
