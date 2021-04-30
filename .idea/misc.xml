@@ -3,7 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/Users/gregor.rant/StudioProjects/RatitovecCompose/app/src/main/res/xml/root_preferences.xml" value="0.3307291666666667" />
+        <entry key="..\:/Users/Gregor/AndroidStudioProjects/RatitovecCompose/app/src/main/res/layout/settings_activity.xml" value="0.20520833333333333" />
+        <entry key="..\:/Users/Gregor/AndroidStudioProjects/RatitovecCompose/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.2890625" />
+        <entry key="..\:/Users/Gregor/AndroidStudioProjects/RatitovecCompose/app/src/main/res/xml/root_preferences.xml" value="0.33" />
       </map>
     </option>
   </component>

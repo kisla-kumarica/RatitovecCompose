@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -47,8 +48,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.preference.PreferenceManager
 import com.example.ratitoveccompose.data.*
 import com.example.ratitoveccompose.ui.theme.RatitovecComposeTheme
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.pagerTabIndicatorOffset
+import com.google.accompanist.pager.rememberPagerState
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.material.internal.ContextUtils
 import com.google.android.material.tabs.TabLayout
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -56,6 +63,7 @@ import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
+    @ExperimentalPagerApi
     @ExperimentalMaterialApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,70 +76,102 @@ class MainActivity : ComponentActivity() {
                 AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_YES)
             else
                 AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_NO)
-
             RatitovecComposeTheme(darkTheme = darkMode.value) {
                 Surface(color = MaterialTheme.colors.background) {
-                    Column {
-                        TopAppBar(
-                            title = {
-                                Text(text = stringResource(R.string.app_name), textAlign = TextAlign.Center)
-                            },
-                           actions = {
-                                IconButton(onClick = { startActivity(Intent(applicationContext,SettingsActivity::class.java))}) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Settings,
-                                        contentDescription = "Menu Btn"
-                                    )
-                                }
-                            },
-                            backgroundColor = MaterialTheme.colors.primary,
-                            contentColor = MaterialTheme.colors.onPrimary,
-                            elevation = 2.dp
-                        )
-                        val Tabs = listOf("Vpisani", "Nevpisani", "Vsi")
-                        var index by remember { mutableStateOf(0) }
-                        Column {
-                            TabRow(selectedTabIndex = index) {
-                                Tabs.forEachIndexed { i, el ->
-                                    Tab(
-                                        selected = i == index,
-                                        onClick = { index = i },
-                                        enabled = true
-                                    )
-                                    {
-                                        Text(el, modifier = Modifier.padding(8.dp))
-                                    }
-                                }
-                            }
-                            Base(index)
-                            /*val swipeableState = rememberSwipeableState(0)
-                            if (swipeableState.currentValue == 1 || swipeableState.currentValue == -1) {
-                                if ((index < 2 && swipeableState.currentValue == 1) || (index >0 && swipeableState.currentValue == -1))
-                                    index += swipeableState.currentValue
-                                lifecycleScope.launch{
-                                swipeableState.snapTo(0)}
-                            }
-                            Row(Modifier.offset{ IntOffset(swipeableState.offset.value.roundToInt(), 0) }.swipeable(swipeableState, mapOf(0f to 0, -300f to 1, 300f to -1), Orientation.Horizontal))
-                            {
-                                Base(index)
-                                if (index < 2)
-                                    Base(index+1)
-                                if (index > 0)
-                                    Base(index-1)
-                            }*/
-                        }
-                    }
+                    Activity()
                 }
             }
         }
     }
 }
 
+@ExperimentalPagerApi
+@Composable
+fun Activity()
+{
+    // Remember a SystemUiController
+    val systemUiController = rememberSystemUiController()
+    val useDarkIcons = MaterialTheme.colors.isLight
+    val context = LocalContext.current
+    val primary = MaterialTheme.colors.primary
+
+
+    SideEffect {
+        // Update all of the system bar colors to be transparent, and use
+        // dark icons if we're in light theme
+      /*  systemUiController.setSystemBarsColor(
+            color = primary,
+            darkIcons = useDarkIcons
+        )*/
+        systemUiController.setStatusBarColor(primary, true)
+        // setStatusBarsColor() and setNavigationBarsColor() also exist
+    }
+    Column {
+        TopAppBar(
+            title = {
+                Text(text = stringResource(R.string.app_name), textAlign = TextAlign.Center)
+            },
+            actions = {
+                IconButton(onClick = { context.startActivity(Intent(context,SettingsActivity::class.java))}) {
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = "Menu Btn"
+                    )
+                }
+            },
+            backgroundColor = MaterialTheme.colors.primary,
+            contentColor = MaterialTheme.colors.onPrimary,
+            elevation = 2.dp
+        )
+        TabBase()
+
+    }
+}
+
+@ExperimentalPagerApi
+@Composable
+fun TabBase()
+{
+    val coroutineScope = rememberCoroutineScope()
+    val Tabs = listOf("Vpisani", "Nevpisani", "Vsi")
+    val pagerState = rememberPagerState(pageCount = 3)
+    Log.d("CURRENTPAGE", pagerState.currentPage.toString())
+    Column {
+        TabRow(selectedTabIndex = pagerState.currentPage,
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    Modifier.pagerTabIndicatorOffset(pagerState, tabPositions)
+                )
+            }) {
+            Tabs.forEachIndexed { i, el ->
+                Tab(
+                    selected = i == pagerState.currentPage,
+                    onClick = {
+                        coroutineScope.launch {  pagerState.scrollToPage(i) }
+                    },
+                    enabled = true
+                )
+                {
+                    Text(el, modifier = Modifier.padding(8.dp))
+                }
+            }
+        }
+        HorizontalPager(state = pagerState, offscreenLimit = 3) { page ->
+            Log.d("PAGE", page.toString())
+            Base(pagerState.currentPage)
+        }
+    }
+}
+
 @Composable
 fun Base(type: Int) {
+    val context = LocalContext.current
     val viewModel: PohodiViewModel = viewModel(factory = PohodiViewModelFactory(LocalContext.current))
     Column {
-        Button(onClick = { viewModel.Insert(Pohod(Date().time, if(type==2) 1 else type)) },
+        Button(onClick = {
+                    viewModel.Insert(Pohod(Date().time, if(type==2) 1 else type))
+                            Toast.makeText(context, "Bravo, le tako naprej!", Toast.LENGTH_LONG).show()
+                         },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(8.dp),

@@ -10,5 +10,5 @@ val Teal500 = Color(0xFF03DAC5)
 val LightBlue500 = Color(0xff009688)
 val LightBlue700 = Color(0xff0288d1)
 
-val Primary = Color(0xfff2af29)
-val Secondary = Color(0xffad343e)
+val Primary = Color(0xffF2AF29)
+val Secondary = Color(0xFF005377)
