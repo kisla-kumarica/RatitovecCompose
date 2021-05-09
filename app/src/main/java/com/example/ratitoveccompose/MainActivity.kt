@@ -1,6 +1,7 @@
 package com.example.ratitoveccompose
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -10,6 +11,8 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
 import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.Orientation
@@ -63,19 +66,18 @@ import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
+    @ExperimentalAnimationApi
     @ExperimentalPagerApi
     @ExperimentalMaterialApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        (application as MyApplication).init()
+        val prefs = (application as MyApplication).ThemePreferences
 
         setContent {
-            val prefs = ThemePreferences(this)
             val darkMode = prefs.DarkTheme.collectAsState(initial = false)
             //TODO observe dark mode
-            if (darkMode.value)
-                AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_YES)
-            else
-                AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_NO)
+            Log.d("Dark mode", darkMode.value.toString())
             RatitovecComposeTheme(darkTheme = darkMode.value) {
                 Surface(color = MaterialTheme.colors.background) {
                     Activity()
@@ -85,6 +87,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@ExperimentalAnimationApi
 @ExperimentalPagerApi
 @Composable
 fun Activity()
@@ -94,6 +97,7 @@ fun Activity()
     val useDarkIcons = MaterialTheme.colors.isLight
     val context = LocalContext.current
     val primary = MaterialTheme.colors.primary
+    val isLight = MaterialTheme.colors.isLight
 
 
     SideEffect {
@@ -103,7 +107,7 @@ fun Activity()
             color = primary,
             darkIcons = useDarkIcons
         )*/
-        systemUiController.setStatusBarColor(primary, true)
+        systemUiController.setStatusBarColor(primary, isLight)
         // setStatusBarsColor() and setNavigationBarsColor() also exist
     }
     Column {
@@ -128,6 +132,7 @@ fun Activity()
     }
 }
 
+@ExperimentalAnimationApi
 @ExperimentalPagerApi
 @Composable
 fun TabBase()
@@ -163,6 +168,7 @@ fun TabBase()
     }
 }
 
+@ExperimentalAnimationApi
 @Composable
 fun Base(type: Int) {
     val context = LocalContext.current
@@ -183,6 +189,7 @@ fun Base(type: Int) {
     }
 }
 
+@ExperimentalAnimationApi
 @Composable
 fun PohodiList(type: Int)
 {
@@ -197,17 +204,21 @@ fun PohodiList(type: Int)
     {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(pohodi!!) {data ->
-                PohodItem(pohod = data, modifier = Modifier
-                    .height(56.dp)
-                    .pointerInput(Unit) {
-                        detectTapGestures(onLongPress = {
-                            viewModel.Remove(data)
-                            Toast
-                                .makeText(context, "clicked index", Toast.LENGTH_LONG)
-                                .show()
-                        })
-                    }
-                )
+                var visible by remember { mutableStateOf(true) }
+                AnimatedVisibility(visible = visible) {
+                    PohodItem(pohod = data, modifier = Modifier
+                        .height(56.dp)
+                        .pointerInput(Unit) {
+                            detectTapGestures(onLongPress = {
+                                viewModel.Remove(data)
+                                visible = false
+                                Toast
+                                    .makeText(context, "clicked index", Toast.LENGTH_LONG)
+                                    .show()
+                            })
+                        }
+                    )
+                }
             }
         }
     }

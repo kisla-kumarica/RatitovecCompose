@@ -13,6 +13,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceFragmentCompat
+import com.example.ratitoveccompose.data.MyApplication
 import com.example.ratitoveccompose.data.ThemePreferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -56,7 +57,7 @@ class SettingsActivity : AppCompatActivity() {
             sharedPreferences: SharedPreferences?,
             key: String?
         ) {
-            val prefs = ThemePreferences(requireActivity().applicationContext)
+            val prefs = (requireActivity().application as MyApplication).ThemePreferences
             lifecycleScope.launch {
                 prefs.saveDarkTheme(sharedPreferences!!.getBoolean("DarkMode", false))
             }

@@ -11,4 +11,6 @@ val LightBlue500 = Color(0xff009688)
 val LightBlue700 = Color(0xff0288d1)
 
 val Primary = Color(0xffF2AF29)
+val PrimaryDark = Color(0xff121212)
 val Secondary = Color(0xFF005377)
+val SecondaryDark = Color(0xffF2AF29)
